@@ -1,0 +1,5 @@
+{
+  "name": "SleekGrammar",
+  "description": "An intelligent application that corrects grammar and translates text across various languages, powered by Google's Gemini API.",
+  "requestFramePermissions": []
+}
