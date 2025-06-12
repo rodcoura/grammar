@@ -1,7 +1,7 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE_CODE } from './constants';
 import { correctGrammarAndTranslate } from './services/geminiService';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import LanguageSelector from './components/LanguageSelector';
@@ -11,15 +11,79 @@ import Spinner from './components/Spinner';
 import { SparklesIcon, ClipboardCopyIcon, XCircleIcon } from './components/Icons';
 import { getTranslator } from './translations';
 
-const App: React.FC = () => {
-  const [inputText, setInputText] = useState<string>('');
-  const [outputText, setOutputText] = useState<string>('');
-  const [selectedLanguage, setSelectedLanguage] = useState<string>(''); // Start with no language selected
+const AppContent: React.FC = () => {
+  const { theme } = useTheme();
+  
+  // Initialize state with localStorage values if available
+  const [inputText, setInputText] = useState<string>(() => {
+    try {
+      return localStorage.getItem('sleekgrammar_input_text') || '';
+    } catch {
+      return '';
+    }
+  });
+  
+  const [outputText, setOutputText] = useState<string>(() => {
+    try {
+      return localStorage.getItem('sleekgrammar_output_text') || '';
+    } catch {
+      return '';
+    }
+  });
+  
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(() => {
+    try {
+      return localStorage.getItem('sleekgrammar_selected_language') || '';
+    } catch {
+      return '';
+    }
+  });
+  
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
 
   const t = getTranslator(selectedLanguage || DEFAULT_LANGUAGE_CODE); // Use default for UI before selection
+
+  // Save input text to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      if (inputText) {
+        localStorage.setItem('sleekgrammar_input_text', inputText);
+      } else {
+        localStorage.removeItem('sleekgrammar_input_text');
+      }
+    } catch (error) {
+      console.warn('Failed to save input text to localStorage:', error);
+    }
+  }, [inputText]);
+
+  // Save output text to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      if (outputText) {
+        localStorage.setItem('sleekgrammar_output_text', outputText);
+      } else {
+        localStorage.removeItem('sleekgrammar_output_text');
+      }
+    } catch (error) {
+      console.warn('Failed to save output text to localStorage:', error);
+    }
+  }, [outputText]);
+
+  // Save selected language to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      if (selectedLanguage) {
+        localStorage.setItem('sleekgrammar_selected_language', selectedLanguage);
+        setOutputText('');
+      } else {
+        localStorage.removeItem('sleekgrammar_selected_language');
+      }
+    } catch (error) {
+      console.warn('Failed to save selected language to localStorage:', error);
+    }
+  }, [selectedLanguage]);
 
   const handleLanguageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedLanguage(event.target.value);
@@ -96,9 +160,9 @@ const App: React.FC = () => {
   const isLanguageSelected = selectedLanguage !== '';
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col items-center py-6 sm:py-10 px-4">
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-slate-900' : 'bg-slate-100'} flex flex-col items-center py-6 sm:py-10 px-4`}>
       <Header t={t} />
-      <main className="w-full md:w-[80%] max-w-screen-xl bg-white shadow-2xl rounded-xl p-6 md:p-10 flex flex-col max-h-[80vh] overflow-y-auto">
+      <main className={`w-full md:w-[80%] max-w-screen-xl ${theme === 'dark' ? 'bg-slate-800' : 'bg-white'} shadow-2xl rounded-xl p-6 md:p-10 flex flex-col max-h-[80vh] overflow-y-auto`}>
         <div className="space-y-6">
           <LanguageSelector
             selectedLanguage={selectedLanguage}
@@ -109,7 +173,7 @@ const App: React.FC = () => {
           />
 
           {!isLanguageSelected && (
-            <p className="text-center text-slate-600 italic mt-2">
+            <p className={`text-center ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'} italic mt-2`}>
               {t('yourTextPlaceholderDisabled')}
             </p>
           )}
@@ -165,7 +229,7 @@ const App: React.FC = () => {
           {isLoading && <Spinner t={t} />}
 
           {error && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm" role="alert">
+            <div className={`mt-4 p-4 ${theme === 'dark' ? 'bg-red-900/50 border-red-700 text-red-300' : 'bg-red-50 border-red-200 text-red-700'} border rounded-md text-sm`} role="alert">
               <p className="font-semibold">{t('errorPrefix')}</p>
               <p>{error}</p>
             </div>
@@ -174,6 +238,14 @@ const App: React.FC = () => {
       </main>
       <Footer t={t} />
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 };
 

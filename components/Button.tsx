@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'icon';
@@ -13,7 +13,9 @@ const Button: React.FC<ButtonProps> = ({
   className = '',
   ...props
 }) => {
-  const baseStyle = "inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150";
+  const { theme } = useTheme();
+  
+  const baseStyle = `inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 ${theme === 'dark' ? 'focus:ring-offset-slate-800' : 'focus:ring-offset-white'} disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150`;
 
   let variantStyle = '';
   switch (variant) {
@@ -21,13 +23,17 @@ const Button: React.FC<ButtonProps> = ({
       variantStyle = 'text-white bg-primary hover:bg-primary-hover focus:ring-primary';
       break;
     case 'secondary':
-      variantStyle = 'text-slate-700 bg-slate-200 hover:bg-slate-300 focus:ring-secondary';
+      variantStyle = theme === 'dark' 
+        ? 'text-slate-200 bg-slate-700 hover:bg-slate-600 focus:ring-secondary'
+        : 'text-slate-700 bg-slate-200 hover:bg-slate-300 focus:ring-secondary';
       break;
     case 'danger':
       variantStyle = 'text-white bg-red-600 hover:bg-red-700 focus:ring-red-500';
       break;
     case 'icon':
-      variantStyle = 'p-2 text-slate-500 hover:text-primary hover:bg-primary-light rounded-full focus:ring-primary focus:bg-primary-light';
+      variantStyle = theme === 'dark'
+        ? 'p-2 text-slate-400 hover:text-primary hover:bg-primary-light rounded-full focus:ring-primary focus:bg-primary-light'
+        : 'p-2 text-slate-500 hover:text-primary hover:bg-primary-light rounded-full focus:ring-primary focus:bg-primary-light';
       break;
   }
 
